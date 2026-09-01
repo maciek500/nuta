@@ -2,12 +2,6 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import confetti from 'canvas-confetti';
 
-const DJ_SOCIALS = {
-  instagram: "https://www.instagram.com/djrolak/",
-  tiktok: "https://tiktok.com/@djrolak",
-  soundcloud: "https://soundcloud.com/maciej-karolak-301990172"
-};
-
 const COLORS = {
   bg: '#121212', bgCard: '#1a1a1a', bgElevated: '#1e1e1e', bgInput: '#2a2a2a', bgInputDisabled: '#333',
   border: '#444', borderSubtle: '#333', borderInput: '#555', gold: '#ffd700', blue: '#007bff', green: '#28a745', red: '#dc3545',
@@ -51,6 +45,8 @@ const GlobalStyles = () => (
     @keyframes slideDown { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
     @keyframes spinPulse { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.2); } 100% { transform: rotate(360deg) scale(1); } }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px) scale(0.98); filter: blur(4px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
+    @keyframes blyskNowego { 0% { background-color: rgba(255, 215, 0, 0.35); } 100% { background-color: transparent; } }
+    .blysk-nowego { animation: blyskNowego 3s ease-out; }
     @keyframes vipPulse { 0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255,215,0,0.4)); } 50% { transform: scale(1.15); filter: drop-shadow(0 0 8px rgba(255,215,0,0.8)); } 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255,215,0,0.4)); } }
     @keyframes vipBtnGlow { 0% { box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2), 0 0 0 0px rgba(255, 215, 0, 0.4); } 50% { box-shadow: 0 6px 25px rgba(255, 215, 0, 0.4), 0 0 0 6px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2), 0 0 0 0px rgba(255, 215, 0, 0.4); } }
     @keyframes skeleton-loading {
@@ -72,13 +68,13 @@ const GlobalStyles = () => (
   `}</style>
 );
 
-const SocialLinks = () => (
+const SocialLinks = ({ socials }) => (
   <div style={{ marginTop: '50px', marginBottom: '30px', textAlign: 'center', padding: '20px', backgroundColor: COLORS.bgCard, borderRadius: '12px', border: `1px solid ${COLORS.borderSubtle}` }}>
     <h3 style={{ fontSize: '1.2rem', marginBottom: '15px' }}>Bawisz się dobrze? Śledź mnie! 📸</h3>
     <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
-      <a href={DJ_SOCIALS.instagram} target="_blank" rel="noreferrer" style={{ flex: 1, textDecoration: 'none', background: `linear-gradient(45deg, ${COLORS.insta1}, ${COLORS.insta3})`, color: 'white', padding: '12px', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>Instagram</a>
-      <a href={DJ_SOCIALS.tiktok} target="_blank" rel="noreferrer" style={{ flex: 1, textDecoration: 'none', backgroundColor: '#000', color: 'white', border: `1px solid ${COLORS.border}`, padding: '12px', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.9rem', boxShadow: `-2px 2px 0 ${COLORS.tiktok2}, 2px -2px 0 ${COLORS.tiktok1}` }}>TikTok</a>
-      <a href={DJ_SOCIALS.soundcloud} target="_blank" rel="noreferrer" style={{ flex: 1, textDecoration: 'none', backgroundColor: '#ff5500', color: 'white', padding: '12px', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>DJ Sety</a>
+      <a href={socials.instagram} target="_blank" rel="noreferrer" style={{ flex: 1, textDecoration: 'none', background: `linear-gradient(45deg, ${COLORS.insta1}, ${COLORS.insta3})`, color: 'white', padding: '12px', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>Instagram</a>
+      <a href={socials.tiktok} target="_blank" rel="noreferrer" style={{ flex: 1, textDecoration: 'none', backgroundColor: '#000', color: 'white', border: `1px solid ${COLORS.border}`, padding: '12px', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.9rem', boxShadow: `-2px 2px 0 ${COLORS.tiktok2}, 2px -2px 0 ${COLORS.tiktok1}` }}>TikTok</a>
+      <a href={socials.soundcloud} target="_blank" rel="noreferrer" style={{ flex: 1, textDecoration: 'none', backgroundColor: '#ff5500', color: 'white', padding: '12px', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>DJ Sety</a>
     </div>
   </div>
 );
@@ -122,10 +118,10 @@ const Okladka = ({ src, size = 50 }) => {
   return <div style={{ ...STYLES.okladkaPlaceholder, width: `${size}px`, height: `${size}px` }}>🎵</div>;
 };
 
-const ElementKolejki = ({ piosenka, index, czyGlosowal, onPodbij }) => {
+const ElementKolejki = ({ piosenka, index, czyGlosowal, onPodbij, czyNowy }) => {
   const isTop1 = index === 0 && !piosenka.platna;
   return (
-    <div className={piosenka.platna ? "smooth-transition-vip" : "smooth-transition"} style={{ background: piosenka.platna ? 'linear-gradient(145deg, rgba(40,35,10,0.7) 0%, rgba(255,215,0,0.05) 50%, rgba(30,30,30,0.6) 100%)' : 'rgba(42, 42, 42, 0.3)', backdropFilter: 'blur(8px)', padding: '12px 15px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: piosenka.platna ? `1px solid rgba(255, 215, 0, 0.25)` : `1px solid rgba(255, 255, 255, 0.05)`, borderLeft: piosenka.platna ? `4px solid ${COLORS.gold}` : (isTop1 ? `4px solid ${COLORS.blue}` : `4px solid transparent`), marginBottom: '12px', boxShadow: piosenka.platna ? '0 4px 15px rgba(255, 215, 0, 0.08)' : '0 4px 10px rgba(0,0,0,0.15)', animation: 'fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both', animationDelay: `${Math.min(index * 0.05, 0.3)}s` }}>
+    <div className={`${piosenka.platna ? "smooth-transition-vip" : "smooth-transition"}${czyNowy ? ' blysk-nowego' : ''}`} style={{ background: piosenka.platna ? 'linear-gradient(145deg, rgba(40,35,10,0.7) 0%, rgba(255,215,0,0.05) 50%, rgba(30,30,30,0.6) 100%)' : 'rgba(42, 42, 42, 0.3)', backdropFilter: 'blur(8px)', padding: '12px 15px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: piosenka.platna ? `1px solid rgba(255, 215, 0, 0.25)` : `1px solid rgba(255, 255, 255, 0.05)`, borderLeft: piosenka.platna ? `4px solid ${COLORS.gold}` : (isTop1 ? `4px solid ${COLORS.blue}` : `4px solid transparent`), marginBottom: '12px', boxShadow: piosenka.platna ? '0 4px 15px rgba(255, 215, 0, 0.08)' : '0 4px 10px rgba(0,0,0,0.15)', animation: czyNowy ? 'fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both, blyskNowego 3s ease-out' : 'fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both', animationDelay: `${Math.min(index * 0.05, 0.3)}s` }}>
       <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flex: 1 }}>
         <div style={{ fontSize: '1.4rem', fontWeight: '800', minWidth: '25px', textAlign: 'center', color: piosenka.platna ? COLORS.gold : (isTop1 ? COLORS.blue : COLORS.textDim) }}>{index + 1}</div>
         <Okladka src={piosenka.okladka} size={45} />
@@ -137,7 +133,7 @@ const ElementKolejki = ({ piosenka, index, czyGlosowal, onPodbij }) => {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', minWidth: '75px' }}>
         {piosenka.platna ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <span style={{ fontSize: '1.3rem', animation: 'vipPulse 2s infinite ease-in-out' }}>👑</span>
+            <span style={{ fontSize: '1.3rem', animation: 'vipPulse 2s infinite ease-in-out', animationDelay: `${-(Date.now() % 2000) / 1000}s` }}>👑</span>
             <span style={{ fontSize: '0.8rem', fontWeight: '800', color: COLORS.gold, textTransform: 'uppercase', letterSpacing: '1px', marginTop: '2px' }}>VIP</span>
           </div>
         ) : (
@@ -225,9 +221,26 @@ function useDebounce(callback, delay) {
     timeoutRef.current = setTimeout(() => callbackRef.current(...args), delay);
   }, [delay]);
 }
+// Stały identyfikator tej przeglądarki (kto zamawiał) - do celowanych powiadomień
+const pobierzMojeId = () => {
+  let id = localStorage.getItem('mojeId');
+  if (!id) {
+    id = 'gosc_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem('mojeId', id);
+  }
+  return id;
+};
+const MOJE_ID = pobierzMojeId();
 
 const COOLDOWN_SECONDS = 180;
-
+// Odmiana: 1 utwór, 2-4 utwory, 5+ utworów
+const odmienUtwor = (n) => {
+  if (n === 1) return 'utwór';
+  const ostatnia = n % 10;
+  const ostatnieDwie = n % 100;
+  if (ostatnia >= 2 && ostatnia <= 4 && (ostatnieDwie < 10 || ostatnieDwie >= 20)) return 'utwory';
+  return 'utworów';
+};
 // Wczytanie pozostałego cooldownu z localStorage
 const wczytajPoczatkowyCooldown = () => {
   const koniec = localStorage.getItem('koniecBlokadyCzas');
@@ -240,12 +253,15 @@ const wczytajPoczatkowyCooldown = () => {
   return Math.ceil(pozostaleMs / 1000);
 };
 
-const EkranOstrzezeniaVip = ({ naAkceptacje, naOdrzucenie }) => (
+const EkranOstrzezeniaVip = ({ naAkceptacje, naOdrzucenie, wykluczenia }) => (
   <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.95)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', animation: 'fadeIn 0.2s' }}>
     <div style={{ backgroundColor: '#1a1a1a', border: '3px solid #dc3545', borderRadius: '15px', padding: '25px', textAlign: 'center', maxWidth: '400px' }}>
       <h2 style={{ color: '#dc3545', margin: '0 0 15px 0', fontSize: '1.8rem', textTransform: 'uppercase' }}>⚠️ Zanim zapłacisz!</h2>
       <p style={{ fontSize: '1.1rem', marginBottom: '15px', lineHeight: '1.5' }}>DJ ma pełne prawo <strong>odrzucić</strong> Twój utwór, jeśli całkowicie psuje klimat obecnej imprezy.</p>
       <p style={{ fontSize: '0.9rem', color: '#aaa', marginBottom: '25px', lineHeight: '1.4' }}>Jeśli utwór zostanie odrzucony, Twoje pieniądze zostaną <strong style={{ color: '#4ade80', fontSize: '1.1rem', textDecoration: 'underline', textUnderlineOffset: '3px' }}>automatycznie zwrócone</strong> (czas zaksięgowania zależy od Twojego banku).</p>
+      {wykluczenia && wykluczenia.trim() && (
+        <p style={{ fontSize: '0.95rem', color: '#ffd700', marginBottom: '25px', lineHeight: '1.4', fontWeight: 'bold', background: 'rgba(255,215,0,0.08)', border: '1px solid rgba(255,215,0,0.25)', borderRadius: '8px', padding: '10px' }}>🚫 DJ nie gra: {wykluczenia}. Za takie utwory VIP zostanie odrzucony (ze zwrotem).</p>
+      )}
       <button onClick={naAkceptacje} style={{ backgroundColor: '#dc3545', color: 'white', padding: '15px', width: '100%', borderRadius: '8px', border: 'none', fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '10px', cursor: 'pointer', textTransform: 'uppercase' }}>Rozumiem, idę do kasy</button>
       <button onClick={naOdrzucenie} style={{ backgroundColor: 'transparent', color: '#888', border: '1px solid #444', padding: '12px', width: '100%', borderRadius: '8px', cursor: 'pointer' }}>Rozmyśliłem się</button>
     </div>
@@ -256,11 +272,22 @@ export default function App() {
   const [widok, setWidok] = useState('start');
   const [pin, setPin] = useState('');
   const [bladPinu, setBladPinu] = useState(false);
+  const [pinDj, setPinDj] = useState(null);
   const [piosenki, setPiosenki] = useState([]);
   const [pokazOstrzezenieVip, setPokazOstrzezenieVip] = useState(false);
   const [pierwszeLadowanie, setPierwszeLadowanie] = useState(true);
   const [tekstOgloszenia, setTekstOgloszenia] = useState("Witaj na imprezie! Zamów piosenkę VIP! 🚀");
   const [cenaVip, setCenaVip] = useState(10);
+  const [trybAplikacji, setTrybAplikacji] = useState('wszystko');
+  const [licznikWieczoru, setLicznikWieczoru] = useState(0);
+  const [licznikVip, setLicznikVip] = useState(0);
+  const [vipWykluczenia, setVipWykluczenia] = useState('');
+  const [noweUtwory, setNoweUtwory] = useState([]);
+  const [djSocials, setDjSocials] = useState({
+    instagram: 'https://www.instagram.com/djrolak/',
+    tiktok: 'https://tiktok.com/@djrolak',
+    soundcloud: 'https://soundcloud.com/maciej-karolak-301990172'
+  });
   const [nowaPiosenka, setNowaPiosenka] = useState("");
   const [nowaWiadomosc, setNowaWiadomosc] = useState("");
   const [wynikiWyszukiwania, setWynikiWyszukiwania] = useState([]);
@@ -275,13 +302,13 @@ export default function App() {
     const z = localStorage.getItem('historiaWplywow');
     return z ? JSON.parse(z) : [];
   });
+  const [napiwki, setNapiwki] = useState([]);
   const [idOdrzucanej, setIdOdrzucanej] = useState(null);
+  const [trwaOdrzucanie, setTrwaOdrzucanie] = useState(false);
   const [powiadomienie, setPowiadomienie] = useState(null);
   const [kanalImpreza, setKanalImpreza] = useState(null);
   const [trzesieSie, setTrzesieSie] = useState(false);
   const [pokazQR, setPokazQR] = useState(false);
-  const [dzwiekWlaczony, setDzwiekWlaczony] = useState(true);
-  const dzwiekRef = useRef(true);
   const [idAkceptowanej, setIdAkceptowanej] = useState(null);
 
   const spotifyTokenRef = useRef("");
@@ -294,8 +321,8 @@ export default function App() {
     const z = localStorage.getItem('mojeGlosy');
     return z ? JSON.parse(z) : [];
   });
-
-  useEffect(() => { dzwiekRef.current = dzwiekWlaczony; }, [dzwiekWlaczony]);
+  const [glosyZuzyte, setGlosyZuzyte] = useState(0);
+  const [resetGlosowZa, setResetGlosowZa] = useState(0);
 
   const pokazPowiadomienie = useCallback((tekst, typ = 'success', czas = 4000) => {
     setPowiadomienie({ tekst, typ });
@@ -332,18 +359,31 @@ export default function App() {
     const pobierzKonfiguracje = async () => {
       const { data: dPasek } = await supabase.from('konfiguracja').select('*').eq('id', 'pasek_tekst').single();
       if (dPasek) setTekstOgloszenia(dPasek.wartosc);
-      const { data: dAnkieta } = await supabase.from('konfiguracja').select('*').eq('id', 'aktywna_ankieta').single();
-      if (dAnkieta && dAnkieta.wartosc) setAnkieta(JSON.parse(dAnkieta.wartosc));
       const { data: dCena } = await supabase.from('konfiguracja').select('*').eq('id', 'cena_vip').single();
       if (dCena && dCena.wartosc) setCenaVip(Number(dCena.wartosc));
+      const { data: dTryb } = await supabase.from('konfiguracja').select('*').eq('id', 'tryb_aplikacji').single();
+      if (dTryb && dTryb.wartosc) setTrybAplikacji(dTryb.wartosc);
+      const { data: dPin } = await supabase.from('konfiguracja').select('*').eq('id', 'pin_dj').single();
+      if (dPin && dPin.wartosc) setPinDj(dPin.wartosc);
+      const { data: dWykl } = await supabase.from('konfiguracja').select('*').eq('id', 'vip_wykluczenia').single();
+      if (dWykl) setVipWykluczenia(dWykl.wartosc || '');
+      const { data: dInsta } = await supabase.from('konfiguracja').select('*').eq('id', 'dj_instagram').single();
+      const { data: dTiktok } = await supabase.from('konfiguracja').select('*').eq('id', 'dj_tiktok').single();
+      const { data: dSc } = await supabase.from('konfiguracja').select('*').eq('id', 'dj_soundcloud').single();
+      setDjSocials({
+        instagram: dInsta?.wartosc || 'https://www.instagram.com/djrolak/',
+        tiktok: dTiktok?.wartosc || 'https://tiktok.com/@djrolak',
+        soundcloud: dSc?.wartosc || 'https://soundcloud.com/maciej-karolak-301990172'
+      });
     };
     pobierzKonfiguracje();
 
     const subskrypcja = supabase.channel('zmiany_konfiguracji')
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'konfiguracja' }, payload => {
         if (payload.new.id === 'pasek_tekst') setTekstOgloszenia(payload.new.wartosc);
-        if (payload.new.id === 'aktywna_ankieta') setAnkieta(JSON.parse(payload.new.wartosc));
         if (payload.new.id === 'cena_vip') setCenaVip(Number(payload.new.wartosc));
+        if (payload.new.id === 'tryb_aplikacji') setTrybAplikacji(payload.new.wartosc);
+        if (payload.new.id === 'vip_wykluczenia') setVipWykluczenia(payload.new.wartosc);
       }).subscribe();
     return () => { supabase.removeChannel(subskrypcja); };
   }, []);
@@ -354,14 +394,6 @@ export default function App() {
     
     if (query.get("success")) {
       const isNapiwek = query.get("napiwek");
-
-      // Bez litości usuwamy śmieci z telefonu. Webhook już ogarnia bazę.
-      localStorage.removeItem('vipTytul');
-      localStorage.removeItem('vipWiadomosc');
-      localStorage.removeItem('vipOkladka');
-      localStorage.removeItem('vipSpotifyId');
-      localStorage.removeItem('vipArtysta');
-      localStorage.removeItem('vipCzystyTytul');
 
       if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 600]);
       setTrzesieSie(true); setTimeout(() => setTrzesieSie(false), 800);
@@ -374,13 +406,6 @@ export default function App() {
     }
     
     if (query.get("canceled")) {
-      localStorage.removeItem('vipTytul');
-      localStorage.removeItem('vipWiadomosc');
-      localStorage.removeItem('vipOkladka');
-      localStorage.removeItem('vipSpotifyId');
-      localStorage.removeItem('vipArtysta');
-      localStorage.removeItem('vipCzystyTytul');
-      
       pokazPowiadomienie("Płatność została anulowana.", 'error');
       window.history.replaceState(null, '', window.location.pathname);
     }
@@ -388,23 +413,23 @@ export default function App() {
 
   useEffect(() => {
     const sortuj = (lista) => [...lista].sort((a, b) => {
-  // 1. VIPy zawsze przed darmowymi
-  if (a.platna !== b.platna) return a.platna ? -1 : 1;
-  // 2. VIPy między sobą: starszy pierwszy (kolejność płacenia)
-  if (a.platna && b.platna) return new Date(a.created_at) - new Date(b.created_at);
-  // 3. Darmowe: po głosach malejąco
-  if ((b.glosy || 0) !== (a.glosy || 0)) return (b.glosy || 0) - (a.glosy || 0);
-  // 4. Przy równych głosach: starszy pierwszy
-  return new Date(a.created_at) - new Date(b.created_at);
-});
+      // 1. VIPy zawsze przed darmowymi
+      if (a.platna !== b.platna) return a.platna ? -1 : 1;
+      // 2. VIPy między sobą: starszy pierwszy (kolejność płacenia)
+      if (a.platna && b.platna) return new Date(a.created_at) - new Date(b.created_at);
+      // 3. Darmowe: po głosach malejąco
+      if ((b.glosy || 0) !== (a.glosy || 0)) return (b.glosy || 0) - (a.glosy || 0);
+      // 4. Przy równych głosach: starszy pierwszy
+      return new Date(a.created_at) - new Date(b.created_at);
+    });
 
     const pobierzPiosenki = async () => {
       const { data, error } = await supabase
         .from('piosenki')
         .select('*')
         .order('platna', { ascending: false })
-.order('glosy', { ascending: false })
-.order('created_at', { ascending: true });
+        .order('glosy', { ascending: false })
+        .order('created_at', { ascending: true });
       if (error) pokazPowiadomienie("Błąd pobierania kolejki.", 'error');
       else setPiosenki(data || []);
       setPierwszeLadowanie(false);
@@ -413,14 +438,44 @@ export default function App() {
     pobierzPiosenki();
     pobierzTokenSpotify();
 
+    // Pobierz napiwki przy starcie
+    const pobierzNapiwki = async () => {
+      const { data } = await supabase.from('napiwki').select('*').order('created_at', { ascending: false });
+      setNapiwki(data || []);
+    };
+    pobierzNapiwki();
+    // Licznik zamówień wieczoru
+    const pobierzLicznik = async () => {
+      const { data } = await supabase.rpc('licz_zamowienia_wieczoru');
+      if (data) {
+        setLicznikWieczoru(data.total || 0);
+        setLicznikVip(data.vip || 0);
+      }
+    };
+    pobierzLicznik();
+    // Pobierz ile głosów gość już zużył + czas do resetu
+    const pobierzGlosy = async () => {
+      const { data } = await supabase.rpc('ile_glosow_zostalo', { p_zamawiajacy_id: MOJE_ID });
+      if (data) {
+        setGlosyZuzyte(data.zuzyte || 0);
+        setResetGlosowZa(data.reset_za_sekund || 0);
+      }
+    };
+    pobierzGlosy();
     const kanal = supabase.channel('wirtualny-klub');
     kanal.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'piosenki' }, (payload) => {
-      if (payload.new.platna === true && dzwiekRef.current) {
-        const dzwiekVip = new Audio('https://actions.google.com/sounds/v1/alarms/positive_alerts.ogg');
-        dzwiekVip.volume = 0.8;
-        dzwiekVip.play().catch(err => console.log("Przeglądarka zablokowała dźwięk:", err));
+      if (payload.new.platna === true) {
+        pokazPowiadomienie(`👑 NOWY VIP: ${payload.new.tytul}`, 'success', 6000);
       }
       setPiosenki((stare) => sortuj([...stare.filter(p => p.id !== payload.new.id), payload.new]));
+      setLicznikWieczoru((n) => n + 1);
+      if (payload.new.platna === true) setLicznikVip((n) => n + 1);
+      // Oznacz jako nowy (błysk) i usuń oznaczenie po 3s
+      const noweId = payload.new.id;
+      setNoweUtwory((stare) => [...stare, noweId]);
+      setTimeout(() => {
+        setNoweUtwory((stare) => stare.filter((id) => id !== noweId));
+      }, 3000);
     });
     kanal.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'piosenki' }, (payload) => {
       setPiosenki((stare) => {
@@ -435,6 +490,20 @@ export default function App() {
     kanal.on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'piosenki' }, (payload) => {
       setPiosenki((stare) => stare.filter(p => p.id !== payload.old.id));
     });
+    kanal.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'napiwki' }, (payload) => {
+      setNapiwki((stare) => [payload.new, ...stare]);
+    });
+    kanal.on('broadcast', { event: 'decyzja-dj' }, ({ payload }) => {
+      if (!payload?.tekst) return;
+      if (payload.cel) {
+        if (payload.cel === MOJE_ID) {
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+          pokazPowiadomienie(payload.tekst, payload.typ || 'success', 7000);
+        }
+        return;
+      }
+      pokazPowiadomienie(payload.tekst, payload.typ || 'success', 6000);
+    });
     kanal.subscribe((status) => { if (status === 'SUBSCRIBED') setKanalImpreza(kanal); });
 
     return () => { supabase.removeChannel(kanal); };
@@ -445,6 +514,20 @@ export default function App() {
     if (czasBlokady > 0) timer = setTimeout(() => setCzasBlokady(prev => prev - 1), 1000);
     return () => clearTimeout(timer);
   }, [czasBlokady]);
+
+  useEffect(() => {
+    let timer;
+    if (resetGlosowZa > 0) {
+      timer = setTimeout(() => {
+        setResetGlosowZa(prev => {
+          const nowy = prev - 1;
+          if (nowy <= 0) setGlosyZuzyte(0); // reset głosów gdy czas minie
+          return nowy;
+        });
+      }, 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [resetGlosowZa]);
 
   useEffect(() => {
     if (nowaPiosenka.trim().length < 3 || czyWybranoZListy) {
@@ -489,23 +572,28 @@ export default function App() {
       pokazPowiadomienie("Ta nuta już jest w kolejce! Podbij ją głosując! 🔥", 'error');
       return;
     }
-    const { data: inserted, error } = await supabase
-      .from('piosenki')
-      .insert([{
-        tytul: nowaPiosenka,
-        wiadomosc: nowaWiadomosc,
-        glosy: 0, platna: false, kwota: 0,
-        okladka: wybranaOkladka,
-        spotify_track_id: wybranySpotifyId || null,
-        bpm_status: 'pending'
-      }])
-      .select()
-      .single();
+    const { data: wynik, error } = await supabase.rpc('dodaj_piosenke_z_limitem', {
+      p_tytul: nowaPiosenka,
+      p_wiadomosc: nowaWiadomosc,
+      p_okladka: wybranaOkladka,
+      p_spotify_track_id: wybranySpotifyId || null,
+      p_zamawiajacy_id: MOJE_ID
+    });
 
     if (error) { pokazPowiadomienie("Nie udało się dodać piosenki.", 'error'); return; }
 
+    if (wynik && wynik.ok === false) {
+      if (wynik.powod === 'kolejka_pelna') {
+        pokazPowiadomienie("Kolejka jest pełna! 🎵 Poczekaj aż DJ zagra kilka kawałków.", 'error', 5000);
+      } else {
+        pokazPowiadomienie("Poczekaj chwilę przed kolejnym utworem! 🎵", 'error');
+      }
+      return;
+    }
+
     pokazPowiadomienie("Dodano do kolejki! 🎶", 'success', 3000);
 
+    const inserted = wynik?.piosenka;
     if (inserted?.id && wybranySpotifyId && wybranyArtysta && wybranyTytul) {
       zlecPobraniBpm(inserted.id, wybranySpotifyId, wybranyArtysta, wybranyTytul);
     }
@@ -524,12 +612,6 @@ export default function App() {
     if (nowaPiosenka.trim() === "") return;
     setTrwaPlatnosc(true);
     try {
-      localStorage.setItem('vipTytul', nowaPiosenka);
-      localStorage.setItem('vipWiadomosc', nowaWiadomosc);
-      localStorage.setItem('vipOkladka', wybranaOkladka);
-      localStorage.setItem('vipSpotifyId', wybranySpotifyId);
-      localStorage.setItem('vipArtysta', wybranyArtysta);
-      localStorage.setItem('vipCzystyTytul', wybranyTytul);
       const { data, error } = await supabase.functions.invoke('platnosc-vip', {
         body: {
           tytul: nowaPiosenka,
@@ -538,7 +620,8 @@ export default function App() {
           okladka: wybranaOkladka,
           spotify_track_id: wybranySpotifyId,
           artysta: wybranyArtysta,
-          czysty_tytul: wybranyTytul
+          czysty_tytul: wybranyTytul,
+          zamawiajacy_id: MOJE_ID
         }
       });
       if (error) throw error;
@@ -548,6 +631,7 @@ export default function App() {
       setTrwaPlatnosc(false);
     }
   }, [nowaPiosenka, nowaWiadomosc, wybranaOkladka, cenaVip, pokazPowiadomienie, wybranySpotifyId, wybranyArtysta, wybranyTytul]);
+
   const zostawNapiwek = useCallback(async (kwota) => {
     setTrwaNapiwek(true);
     try {
@@ -563,18 +647,30 @@ export default function App() {
 
   const podbijGlos = useCallback(async (piosenka) => {
     if (oddaneGlosy.includes(piosenka.id)) return;
+    if (glosyZuzyte >= 5) {
+      pokazPowiadomienie("Wykorzystałeś 5 głosów! Spróbuj za jakiś czas 🔥", 'error');
+      return;
+    }
+    const { data: wynik, error } = await supabase.rpc('podbij_glos_z_limitem', {
+      p_piosenka_id: piosenka.id,
+      p_zamawiajacy_id: MOJE_ID
+    });
+    if (error || (wynik && wynik.ok === false)) {
+      pokazPowiadomienie("Wykorzystałeś 5 głosów! Spróbuj za jakiś czas 🔥", 'error');
+      setGlosyZuzyte(5);
+      return;
+    }
     const noweOddaneGlosy = [...oddaneGlosy, piosenka.id];
     setOddaneGlosy(noweOddaneGlosy);
     localStorage.setItem('mojeGlosy', JSON.stringify(noweOddaneGlosy));
-    const { error } = await supabase.rpc('podbij_glos', { piosenka_id: piosenka.id });
-    if (error) {
-      await supabase.from('piosenki').update({ glosy: (piosenka.glosy || 0) + 1 }).eq('id', piosenka.id);
-    }
-  }, [oddaneGlosy]);
+    setGlosyZuzyte((n) => n + 1);
+    // Pierwszy głos uruchamia odliczanie 30 min (1800s)
+    if (resetGlosowZa === 0) setResetGlosowZa(1800);
+  }, [oddaneGlosy, glosyZuzyte, pokazPowiadomienie, resetGlosowZa]);
 
   const akceptujPiosenke = useCallback(async (piosenka) => {
     setIdAkceptowanej(piosenka.id);
-    if (kanalImpreza) kanalImpreza.send({ type: 'broadcast', event: 'decyzja-dj', payload: { tekst: `🔥 DJ zagra: ${piosenka.tytul}!`, typ: 'success' } });
+    if (kanalImpreza) kanalImpreza.send({ type: 'broadcast', event: 'decyzja-dj', payload: { tekst: `✅ DJ zagrał: ${piosenka.tytul}!`, typ: 'success' } });
     setZaakceptowane((stare) => {
       const nowe = [...stare, piosenka];
       localStorage.setItem('historiaWplywow', JSON.stringify(nowe));
@@ -585,6 +681,8 @@ export default function App() {
   }, [kanalImpreza]);
 
   const odrzucPiosenke = useCallback(async (piosenka, powod) => {
+    if (trwaOdrzucanie) return;
+    setTrwaOdrzucanie(true);
     if (piosenka.platna && piosenka.session_id) {
       pokazPowiadomienie("Zlecam zwrot do banku...", 'success');
       try {
@@ -594,16 +692,20 @@ export default function App() {
         pokazPowiadomienie("⚠️ Błąd zwrotu! Sprawdź Stripe.", 'error');
       }
     }
-    let tresc = piosenka.platna ? `❌ DJ odrzucił: ${piosenka.tytul}. Zwrot PLN zlecony! 💸` : `❌ DJ odrzucił: ${piosenka.tytul}`;
+    let tresc = piosenka.platna ? `❌ Twój VIP "${piosenka.tytul}" został odrzucony. Zwrot PLN zlecony! 💸` : `❌ Twój utwór "${piosenka.tytul}" nie wejdzie do seta.`;
     if (powod) tresc += ` Powód: ${powod}`;
-    if (kanalImpreza) kanalImpreza.send({ type: 'broadcast', event: 'decyzja-dj', payload: { tekst: tresc, typ: 'error' } });
+    // Celowane - tylko do osoby która zamawiała
+    if (kanalImpreza && piosenka.zamawiajacy_id) {
+      kanalImpreza.send({ type: 'broadcast', event: 'decyzja-dj', payload: { tekst: tresc, typ: 'error', cel: piosenka.zamawiajacy_id } });
+    }
     await supabase.from('piosenki').delete().eq('id', piosenka.id);
     setIdOdrzucanej(null);
-  }, [kanalImpreza, pokazPowiadomienie]);
+    setTrwaOdrzucanie(false);
+  }, [kanalImpreza, pokazPowiadomienie, trwaOdrzucanie]);
 
   const sprawdzPin = (e) => {
     e.preventDefault();
-    if (pin === '2026') { setWidok('dj'); setPin(''); setBladPinu(false); }
+    if (pinDj && pin === pinDj) { setWidok('dj'); setPin(''); setBladPinu(false); }
     else setBladPinu(true);
   };
 
@@ -616,7 +718,28 @@ export default function App() {
     await supabase.from('konfiguracja').upsert({ id: 'cena_vip', wartosc: nowaCena.toString() });
   }, 500);
   const handleZmianaCeny = (e) => { setCenaVip(e.target.value); zapiszCeneDebounced(e.target.value); };
-
+  const zmienTryb = async (nowyTryb) => {
+    setTrybAplikacji(nowyTryb);
+    await supabase.from('konfiguracja').upsert({ id: 'tryb_aplikacji', wartosc: nowyTryb });
+  };
+  const zapiszWykluczeniaDebounced = useDebounce(async (tekst) => {
+    await supabase.from('konfiguracja').upsert({ id: 'vip_wykluczenia', wartosc: tekst });
+  }, 600);
+  const zerujLicznik = async () => {
+    if (!window.confirm('Wyzerować licznik zamówień? (zrób to na starcie imprezy)')) return;
+    await supabase.from('konfiguracja').upsert({ id: 'licznik_reset', wartosc: new Date().toISOString() });
+    setLicznikWieczoru(0);
+    setLicznikVip(0);
+    pokazPowiadomienie('Licznik wyzerowany! ⚡', 'success', 3000);
+  };
+  const zapiszLinkDebounced = useDebounce(async (klucz, wartosc) => {
+    await supabase.from('konfiguracja').upsert({ id: klucz, wartosc: wartosc });
+  }, 600);
+  const handleZmianaLinku = (siec, wartosc) => {
+    setDjSocials((stare) => ({ ...stare, [siec]: wartosc }));
+    const klucz = siec === 'instagram' ? 'dj_instagram' : siec === 'tiktok' ? 'dj_tiktok' : 'dj_soundcloud';
+    zapiszLinkDebounced(klucz, wartosc);
+  };
   if (widok === 'start') {
     return (
       <div style={{ ...STYLES.page, position: 'relative', animation: trzesieSie ? 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both' : 'none' }}>
@@ -625,10 +748,25 @@ export default function App() {
         <WyskakujacePowiadomienie powiadomienie={powiadomienie} />
         <div style={{ padding: '20px' }}>
           <button onClick={() => setWidok('logowanie-dj')} style={{ position: 'absolute', top: '50px', right: '15px', ...STYLES.btnGhost, color: '#222', fontSize: '1.2rem', zIndex: 10 }}>⚙️</button>
-          <h1 style={{ textAlign: 'center', marginBottom: '30px', marginTop: '10px' }}>Witaj na imprezie! 🪩</h1>
+          <div style={{ textAlign: 'center', marginTop: '10px', marginBottom: '30px' }}>
+            <img src="/nuta-logo.png" alt="Nuta" style={{ height: '60px', marginBottom: '16px' }} />
+            <h1 style={{ margin: 0 }}>Witaj na imprezie! 🪩</h1>
+          </div>
+          
           <div style={STYLES.container}>
-            <button onClick={() => setWidok('gosc')} style={{ ...STYLES.btnPrimary, width: '100%', padding: '20px', borderRadius: '12px', fontSize: '1.3rem', marginBottom: '8px', boxShadow: '0 4px 20px rgba(255, 215, 0, 0.2)' }}>Zamów Piosenkę i dodaj dedykację 🎶</button>
-            <div style={{ textAlign: 'center', color: COLORS.gold, fontSize: '0.9rem', marginBottom: '25px', fontWeight: 'bold' }}>👑 Kup VIP, aby wbić na sam szczyt listy!</div>
+            {trybAplikacji === 'wszystko' && (
+              <>
+                <button onClick={() => setWidok('gosc')} style={{ ...STYLES.btnPrimary, width: '100%', padding: '20px', borderRadius: '12px', fontSize: '1.3rem', marginBottom: '8px', boxShadow: '0 4px 20px rgba(255, 215, 0, 0.2)' }}>Zamów Piosenkę i dodaj dedykację 🎶</button>
+                <div style={{ textAlign: 'center', color: COLORS.gold, fontSize: '0.9rem', marginBottom: licznikWieczoru > 0 ? '12px' : '25px', fontWeight: 'bold' }}>👑 Kup VIP, aby wbić na sam szczyt listy!</div>
+                {licznikWieczoru > 0 && (
+                  <div style={{ textAlign: 'center', marginBottom: '25px' }}>
+                    <div style={{ display: 'inline-block', background: 'rgba(255, 215, 0, 0.08)', border: '1px solid rgba(255, 215, 0, 0.25)', borderRadius: '30px', padding: '8px 20px', fontSize: '0.9rem', color: COLORS.gold, fontWeight: '700' }}>
+                      🎵 Dziś zamówiliście {licznikWieczoru} {odmienUtwor(licznikWieczoru)}{licznikVip > 0 ? `, w tym ${licznikVip} VIP 👑` : ''}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
             <div style={{ ...STYLES.card, marginBottom: '40px' }}>
               <div style={{ textAlign: 'center', marginBottom: '10px', fontSize: '0.9rem', color: '#bbb' }}>🍻 Doceniasz grę? Zafunduj DJ-owi drinka!</div>
               <div style={{ display: 'flex', gap: '10px' }}>
@@ -639,17 +777,31 @@ export default function App() {
                 ))}
               </div>
             </div>
-            <h2 style={STYLES.sectionTitle}>🔥 Głosuj na kolejne numery ({piosenki.length})</h2>
-            {pierwszeLadowanie ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}><SkeletonKolejki /><SkeletonKolejki /><SkeletonKolejki /></div>
-            ) : piosenki.length === 0 ? (
-              <p style={{ color: COLORS.textDisabled, fontStyle: 'italic', textAlign: 'center', padding: '20px' }}>Lista jest pusta. Bądź pierwszy!</p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {piosenki.map((p, i) => <ElementKolejki key={p.id} piosenka={p} index={i} czyGlosowal={oddaneGlosy.includes(p.id)} onPodbij={podbijGlos} />)}
-              </div>
+            {trybAplikacji === 'wszystko' && (
+              <>
+                <div style={{ background: oddaneGlosy.length >= 5 ? 'rgba(220, 53, 69, 0.12)' : 'rgba(255, 215, 0, 0.08)', border: `1px solid ${oddaneGlosy.length >= 5 ? 'rgba(220,53,69,0.3)' : 'rgba(255,215,0,0.2)'}`, borderRadius: '12px', padding: '12px', marginBottom: '15px', textAlign: 'center', fontSize: '0.9rem', fontWeight: '600', color: oddaneGlosy.length >= 5 ? COLORS.red : COLORS.gold }}>
+                  {glosyZuzyte >= 5
+                ? (resetGlosowZa > 0
+                    ? `⏳ Nowy głos za ${Math.floor(resetGlosowZa / 60)}:${String(resetGlosowZa % 60).padStart(2, '0')}`
+                    : '🔥 Głosy odnowione — możesz głosować!')
+                : `🗳️ Twoje głosy: ${glosyZuzyte}/5 — zostało ${5 - glosyZuzyte}`}
+                </div>
+                <h2 style={STYLES.sectionTitle}>🔥 Głosuj na kolejne numery ({piosenki.length})</h2>
+                {pierwszeLadowanie ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}><SkeletonKolejki /><SkeletonKolejki /><SkeletonKolejki /></div>
+                ) : piosenki.length === 0 ? (
+                  <p style={{ color: COLORS.textDisabled, fontStyle: 'italic', textAlign: 'center', padding: '20px' }}>Lista pusta — Twój moment! Wrzuć coś na rozgrzewkę 🚀</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {piosenki.map((p, i) => <ElementKolejki key={p.id} piosenka={p} index={i} czyGlosowal={oddaneGlosy.includes(p.id)} onPodbij={podbijGlos} czyNowy={noweUtwory.includes(p.id)} />)}
+                  </div>
+                )}
+              </>
             )}
-            <SocialLinks />
+            <SocialLinks socials={djSocials} />
+            <div style={{ textAlign: 'center', padding: '20px 0 30px', fontSize: '0.8rem', color: COLORS.textDim, letterSpacing: '0.5px' }}>
+              ♪ Nuta · nuta.app
+            </div>
           </div>
         </div>
       </div>
@@ -674,7 +826,14 @@ export default function App() {
   if (widok === 'gosc') {
     const czyMaDedykacje = nowaWiadomosc.trim().length > 0;
     const brakPiosenki = nowaPiosenka.trim() === "";
-    const czyDarmowyDisabled = czasBlokady > 0 || brakPiosenki || czyMaDedykacje || trwaPlatnosc;
+    const darmowychWKolejce = piosenki.filter(p => !p.platna).length;
+    const mojeUtwory = piosenki.filter(p => p.zamawiajacy_id === MOJE_ID);
+    const mojaNajlepszaPozycja = mojeUtwory.length > 0
+      ? Math.min(...mojeUtwory.map(p => piosenki.findIndex(x => x.id === p.id) + 1))
+      : 0;
+    const mamVipa = mojeUtwory.some(p => p.platna);
+    const kolejkaPelna = darmowychWKolejce >= 30;
+    const czyDarmowyDisabled = czasBlokady > 0 || brakPiosenki || czyMaDedykacje || trwaPlatnosc || kolejkaPelna;
     const czyVipDisabled = brakPiosenki || trwaPlatnosc || !zgodaRegulamin;
 
     return (
@@ -684,10 +843,15 @@ export default function App() {
         <div style={{ padding: '20px' }}>
           <WyskakujacePowiadomienie powiadomienie={powiadomienie} />
           <OknoRegulaminu pokazRegulamin={pokazRegulamin} setPokazRegulamin={setPokazRegulamin} />
-          {pokazOstrzezenieVip && <EkranOstrzezeniaVip naAkceptacje={() => { setPokazOstrzezenieVip(false); zaplacVip(); }} naOdrzucenie={() => setPokazOstrzezenieVip(false)} />}
+          {pokazOstrzezenieVip && <EkranOstrzezeniaVip naAkceptacje={() => { setPokazOstrzezenieVip(false); zaplacVip(); }} naOdrzucenie={() => setPokazOstrzezenieVip(false)} wykluczenia={vipWykluczenia} />}
 
           <button onClick={() => setWidok('start')} style={{ ...STYLES.btnGhost, marginBottom: '20px' }}>← Wyjście</button>
           <h1 style={{ textAlign: 'center', marginBottom: '30px' }}>Zamów Piosenkę 🎶</h1>
+          {mojeUtwory.length > 0 && (
+            <div style={{ maxWidth: '600px', margin: '0 auto 20px', background: mamVipa ? 'rgba(255, 215, 0, 0.1)' : 'rgba(0, 123, 255, 0.1)', border: `1px solid ${mamVipa ? 'rgba(255,215,0,0.3)' : 'rgba(0,123,255,0.3)'}`, borderRadius: '12px', padding: '12px 16px', textAlign: 'center', fontSize: '0.9rem', fontWeight: '600', color: mamVipa ? COLORS.gold : '#7ab8ff' }}>
+              {mamVipa ? '👑' : '🎶'} Twoje utwory: {mojeUtwory.length} w kolejce · najwyżej pozycja {mojaNajlepszaPozycja}
+            </div>
+          )}
 
           <div style={STYLES.container}>
             <PasekCooldownu czasBlokady={czasBlokady} maxCzas={COOLDOWN_SECONDS} />
@@ -747,19 +911,25 @@ export default function App() {
                   {trwaPlatnosc ? '⏳ Ładowanie...' : (<><span>🚀</span><span>VIP ({cenaVip} PLN)</span></>)}
                 </button>
                 <button type="button" onClick={dodajPiosenke} disabled={czyDarmowyDisabled} className="free-button-premium smooth-transition" style={{ ...STYLES.btnSecondary, flex: 1, ...(czyDarmowyDisabled ? STYLES.btnDisabled : {}) }}>
-                  {czasBlokady > 0 ? `⏳ Czekaj (${czasBlokady}s)` : (czyMaDedykacje ? '🔒 Tylko VIP' : '👋 Za darmo')}
+                  {kolejkaPelna ? '🚫 Kolejka pełna' : (czasBlokady > 0 ? `⏳ Czekaj (${czasBlokady}s)` : (czyMaDedykacje ? '🔒 Tylko VIP' : '👋 Za darmo'))}
                 </button>
               </div>
             </div>
-
+            <div style={{ background: oddaneGlosy.length >= 5 ? 'rgba(220, 53, 69, 0.12)' : 'rgba(255, 215, 0, 0.08)', border: `1px solid ${oddaneGlosy.length >= 5 ? 'rgba(220,53,69,0.3)' : 'rgba(255,215,0,0.2)'}`, borderRadius: '12px', padding: '12px', marginBottom: '15px', textAlign: 'center', fontSize: '0.9rem', fontWeight: '600', color: oddaneGlosy.length >= 5 ? COLORS.red : COLORS.gold }}>
+              {glosyZuzyte >= 5
+                ? (resetGlosowZa > 0
+                    ? `⏳ Nowy głos za ${Math.floor(resetGlosowZa / 60)}:${String(resetGlosowZa % 60).padStart(2, '0')}`
+                    : '🔥 Głosy odnowione — możesz głosować!')
+                : `🗳️ Twoje głosy: ${glosyZuzyte}/5 — zostało ${5 - glosyZuzyte}`}
+            </div>
             <h2 style={STYLES.sectionTitle}>🔥 Kolejka ({piosenki.length})</h2>
             {pierwszeLadowanie ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}><SkeletonKolejki /><SkeletonKolejki /><SkeletonKolejki /></div>
             ) : piosenki.length === 0 ? (
-              <p style={{ color: COLORS.textDisabled, fontStyle: 'italic', textAlign: 'center', padding: '20px' }}>Lista jest pusta. Bądź pierwszy!</p>
+              <p style={{ color: COLORS.textDisabled, fontStyle: 'italic', textAlign: 'center', padding: '20px' }}>Lista pusta — Twój moment! Wrzuć coś na rozgrzewkę 🚀</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {piosenki.map((p, i) => <ElementKolejki key={p.id} piosenka={p} index={i} czyGlosowal={oddaneGlosy.includes(p.id)} onPodbij={podbijGlos} />)}
+                {piosenki.map((p, i) => <ElementKolejki key={p.id} piosenka={p} index={i} czyGlosowal={oddaneGlosy.includes(p.id)} onPodbij={podbijGlos} czyNowy={noweUtwory.includes(p.id)} />)}
               </div>
             )}
           </div>
@@ -769,9 +939,11 @@ export default function App() {
   }
 
   if (widok === 'dj') {
-    const utargKolejka = piosenki.filter(p => p.platna).reduce((sum, p) => sum + (p.kwota || 10), 0);
-    const utargZagrane = zaakceptowane.filter(p => p.platna).reduce((sum, p) => sum + (p.kwota || 10), 0);
+    const utargKolejka = piosenki.filter(p => p.platna).reduce((sum, p) => sum + Number(p.kwota || 0), 0);
+    const utargZagrane = zaakceptowane.filter(p => p.platna).reduce((sum, p) => sum + Number(p.kwota || 0), 0);
     const utargVip = utargKolejka + utargZagrane;
+    const utargNapiwki = napiwki.reduce((sum, n) => sum + Number(n.kwota || 0), 0);
+    const utargRazem = utargVip + utargNapiwki;
 
     return (
       <div style={{ ...STYLES.page, padding: '20px' }}>
@@ -791,9 +963,6 @@ export default function App() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <button onClick={() => setWidok('start')} style={STYLES.btnGhost}>← Wyloguj</button>
           <div style={{ display: 'flex', gap: '10px' }}>
-            <button onClick={() => setDzwiekWlaczony(!dzwiekWlaczony)} style={{ background: dzwiekWlaczony ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)', color: dzwiekWlaczony ? COLORS.green : COLORS.red, border: `1px solid ${dzwiekWlaczony ? COLORS.green : COLORS.red}`, padding: '8px 20px', borderRadius: '20px', fontWeight: 'bold', cursor: 'pointer', transition: '0.2s', backdropFilter: 'blur(5px)' }}>
-              {dzwiekWlaczony ? '🔊 Powiadomienia ON' : '🔇 Wyciszone'}
-            </button>
             <button onClick={() => setPokazQR(true)} style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', padding: '8px 20px', borderRadius: '20px', fontWeight: 'bold', cursor: 'pointer', transition: '0.2s', backdropFilter: 'blur(5px)' }}>
               📱 Pokaż QR
             </button>
@@ -803,23 +972,54 @@ export default function App() {
         <h1 style={{ textAlign: 'center', marginBottom: '30px', marginTop: '-10px' }}>🎧 Konsoleta</h1>
         <div style={STYLES.containerWide}>
           <div style={{ display: 'flex', gap: '15px', marginBottom: '30px', flexWrap: 'wrap' }}>
-            <div style={{ backgroundColor: COLORS.earningsGreenBg, border: `1px solid ${COLORS.earningsGreenBorder}`, padding: '15px', borderRadius: '10px', flex: 1, minWidth: '150px', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.8rem', color: '#aaa', marginBottom: '5px', fontWeight: 'bold' }}>UTARG DZISIAJ (VIP)</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: COLORS.earningsGreenValue, padding: '10px 0' }}>{utargVip} PLN</div>
-              <button onClick={() => { if (window.confirm('Na pewno wyzerować utarg?')) { setZaakceptowane([]); localStorage.removeItem('historiaWplywow'); } }} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: '0.7rem', cursor: 'pointer', textDecoration: 'underline', marginTop: '5px' }}>
+            <div style={{ backgroundColor: COLORS.earningsGreenBg, border: `1px solid ${COLORS.earningsGreenBorder}`, padding: '15px', borderRadius: '10px', flex: 1, minWidth: '200px', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.8rem', color: '#aaa', marginBottom: '5px', fontWeight: 'bold' }}>UTARG DZISIAJ</div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: COLORS.earningsGreenValue, padding: '8px 0 4px' }}>{utargRazem} PLN</div>
+              <div style={{ fontSize: '0.75rem', color: '#9fd9b8', marginBottom: '8px' }}>
+                👑 {utargVip} VIP &nbsp;·&nbsp; 🍻 {utargNapiwki} napiwki
+              </div>
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '8px', marginBottom: '5px' }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: COLORS.gold }}>🎵 {licznikWieczoru}</span>
+                <span style={{ fontSize: '0.75rem', color: '#9fd9b8' }}> {odmienUtwor(licznikWieczoru)}{licznikVip > 0 ? `, w tym ${licznikVip} VIP` : ''}</span>
+              </div>
+              <button onClick={async () => {
+                if (!window.confirm('Wyzerować statystyki utargu? (VIP-y czekające w kolejce zostają nietknięte)')) return;
+                setZaakceptowane([]);
+                localStorage.removeItem('historiaWplywow');
+                await supabase.from('napiwki').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                setNapiwki([]);
+                pokazPowiadomienie('Statystyki wyzerowane!', 'success', 3000);
+              }} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: '0.7rem', cursor: 'pointer', textDecoration: 'underline', marginTop: '5px' }}>
                 Zeruj utarg
               </button>
+              <button onClick={zerujLicznik} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: '0.7rem', cursor: 'pointer', textDecoration: 'underline', marginTop: '5px', display: 'block', marginLeft: 'auto', marginRight: 'auto' }}>
+                Zeruj licznik zamówień
+              </button>
             </div>
-            <div style={{ backgroundColor: COLORS.bgInput, border: `2px solid ${COLORS.gold}`, padding: '15px', borderRadius: '10px', flex: 1, minWidth: '150px', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.8rem', color: COLORS.gold, marginBottom: '5px', fontWeight: 'bold' }}>CENA VIP (PLN)</div>
-              <input type="number" min="10" value={cenaVip} onChange={handleZmianaCeny} style={{ ...STYLES.input, backgroundColor: COLORS.bg, fontSize: '1.5rem', padding: '10px', textAlign: 'center', fontWeight: 'bold', color: COLORS.gold }} />
+            <div style={{ backgroundColor: COLORS.bgInput, padding: '15px', borderRadius: '10px', flex: 1, minWidth: '280px' }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                <div style={{ flexShrink: 0 }}>
+                  <div style={{ fontSize: '0.8rem', color: COLORS.gold, marginBottom: '5px', fontWeight: 'bold', textAlign: 'center' }}>CENA VIP (PLN)</div>
+                  <input type="number" min="10" value={cenaVip} onChange={handleZmianaCeny} style={{ ...STYLES.input, backgroundColor: COLORS.bg, fontSize: '1.5rem', padding: '10px', textAlign: 'center', fontWeight: 'bold', color: COLORS.gold, width: '90px' }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginBottom: '5px', fontWeight: 'bold', textAlign: 'center' }}>TRYB APLIKACJI</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <button onClick={() => zmienTryb('wszystko')} style={{ padding: '10px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: trybAplikacji === 'wszystko' ? COLORS.green : 'rgba(255,255,255,0.08)', color: trybAplikacji === 'wszystko' ? 'white' : COLORS.textMuted }}>
+                      🎶 Wszystko
+                    </button>
+                    <button onClick={() => zmienTryb('tylko_napiwki')} style={{ padding: '10px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem', backgroundColor: trybAplikacji === 'tylko_napiwki' ? COLORS.green : 'rgba(255,255,255,0.08)', color: trybAplikacji === 'tylko_napiwki' ? 'white' : COLORS.textMuted }}>
+                      🍻 Tylko napiwki
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div style={{ backgroundColor: COLORS.bgInput, padding: '15px', borderRadius: '10px', flex: 2, minWidth: '250px' }}>
-              <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginBottom: '5px' }}>EDYCJA PASKA OGŁOSZEŃ</div>
+            <div style={{ backgroundColor: COLORS.bgInput, padding: '15px', borderRadius: '10px', flex: 1, minWidth: '250px' }}>
+              <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginBottom: '5px', fontWeight: 'bold' }}>EDYCJA PASKA OGŁOSZEŃ</div>
               <input type="text" value={tekstOgloszenia} onChange={handleZmianaPaska} style={{ ...STYLES.input, backgroundColor: COLORS.bg, fontSize: '1rem', padding: '10px' }} />
             </div>
           </div>
-
           <div style={{ marginBottom: '40px' }}>
             <h2 style={{ fontSize: '1.2rem', color: COLORS.blue, borderBottom: `1px solid ${COLORS.borderSubtle}`, paddingBottom: '10px' }}>📥 Oczekujące ({piosenki.length})</h2>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', backgroundColor: COLORS.bgInput, padding: '12px', borderRadius: '8px', marginBottom: '20px', fontSize: '0.85rem', color: COLORS.textSecondary, alignItems: 'center', border: `1px solid ${COLORS.borderSubtle}` }}>
@@ -830,10 +1030,10 @@ export default function App() {
             {pierwszeLadowanie ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}><SkeletonKolejki /><SkeletonKolejki /><SkeletonKolejki /></div>
             ) : piosenki.length === 0 ? (
-              <p style={{ color: COLORS.textDisabled, fontStyle: 'italic', padding: '20px', textAlign: 'center' }}>Brak zamówień — cisza przed burzą! 🌪️</p>
+              <p style={{ color: COLORS.textDisabled, fontStyle: 'italic', padding: '20px', textAlign: 'center' }}>Kolejka pusta. Daj im znać że można zamawiać! 📲</p>
             ) : (
               piosenki.map((piosenka) => (
-                <div key={piosenka.id} style={{ backgroundColor: COLORS.bgElevated, padding: '15px', marginBottom: '10px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: piosenka.platna ? `5px solid ${COLORS.gold}` : `5px solid ${COLORS.blue}` }}>
+                <div key={piosenka.id} className={noweUtwory.includes(piosenka.id) ? 'blysk-nowego' : ''} style={{ backgroundColor: COLORS.bgElevated, padding: '15px', marginBottom: '10px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: piosenka.platna ? `5px solid ${COLORS.gold}` : `5px solid ${COLORS.blue}` }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', flex: 1, paddingRight: '10px' }}>
                     <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                       {piosenka.okladka && <img src={piosenka.okladka} alt="Okładka" style={{ width: '40px', height: '40px', borderRadius: '4px', objectFit: 'cover' }} />}
@@ -850,12 +1050,18 @@ export default function App() {
                   </div>
                   <div style={{ display: 'flex', gap: '10px' }}>
                     {idOdrzucanej === piosenka.id ? (
-                      <div style={{ display: 'flex', gap: '5px', animation: 'fadeIn 0.2s' }}>
-                        <button onClick={() => odrzucPiosenke(piosenka, "Inny klimat 🎭")} style={STYLES.btnReason}>🎭</button>
-                        <button onClick={() => odrzucPiosenke(piosenka, "Niedawno była ⏳")} style={STYLES.btnReason}>⏳</button>
-                        <button onClick={() => odrzucPiosenke(piosenka, "Mało znana ❓")} style={STYLES.btnReason}>❓</button>
-                        <button onClick={() => odrzucPiosenke(piosenka, "Wulgarna dedykacja 🤬")} style={STYLES.btnReason}>🤬</button>
-                        <button onClick={() => setIdOdrzucanej(null)} style={{ ...STYLES.btnReason, backgroundColor: '#555' }}>✕</button>
+                      <div style={{ display: 'flex', gap: '5px', alignItems: 'center', animation: 'fadeIn 0.2s' }}>
+                        {trwaOdrzucanie ? (
+                          <span style={{ color: COLORS.textMuted, fontSize: '0.85rem', fontStyle: 'italic', padding: '8px 12px' }}>⏳ Odrzucam...</span>
+                        ) : (
+                          <>
+                            <button onClick={() => odrzucPiosenke(piosenka, "Inny klimat 🎭")} style={STYLES.btnReason}>🎭</button>
+                            <button onClick={() => odrzucPiosenke(piosenka, "Niedawno była ⏳")} style={STYLES.btnReason}>⏳</button>
+                            <button onClick={() => odrzucPiosenke(piosenka, "Mało znana ❓")} style={STYLES.btnReason}>❓</button>
+                            <button onClick={() => odrzucPiosenke(piosenka, "Wulgarna dedykacja 🤬")} style={STYLES.btnReason}>🤬</button>
+                            <button onClick={() => setIdOdrzucanej(null)} style={{ ...STYLES.btnReason, backgroundColor: '#555' }}>✕</button>
+                          </>
+                        )}
                       </div>
                     ) : (
                       <>
@@ -870,7 +1076,27 @@ export default function App() {
               ))
             )}
           </div>
-
+          <div style={{ backgroundColor: COLORS.bgInput, padding: '15px', borderRadius: '10px', marginBottom: '20px', border: `1px solid ${COLORS.borderSubtle}` }}>
+            <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginBottom: '8px', fontWeight: 'bold' }}>🚫 CZEGO NIE GRASZ (widoczne przed płatnością VIP)</div>
+            <input type="text" value={vipWykluczenia} onChange={(e) => { setVipWykluczenia(e.target.value); zapiszWykluczeniaDebounced(e.target.value); }} placeholder="np. disco polo, metal, techno" style={{ ...STYLES.input, backgroundColor: COLORS.bg, fontSize: '0.95rem', padding: '10px' }} />
+          </div>
+          <div style={{ backgroundColor: COLORS.bgInput, padding: '15px', borderRadius: '10px', marginBottom: '30px', border: `1px solid ${COLORS.borderSubtle}` }}>
+            <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginBottom: '10px', fontWeight: 'bold' }}>🔗 TWOJE LINKI (social media)</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div>
+                <label style={{ fontSize: '0.75rem', color: COLORS.textMuted }}>Instagram</label>
+                <input type="text" value={djSocials.instagram} onChange={(e) => handleZmianaLinku('instagram', e.target.value)} placeholder="https://instagram.com/..." style={{ ...STYLES.input, backgroundColor: COLORS.bg, fontSize: '0.9rem', padding: '10px', marginTop: '3px' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.75rem', color: COLORS.textMuted }}>TikTok</label>
+                <input type="text" value={djSocials.tiktok} onChange={(e) => handleZmianaLinku('tiktok', e.target.value)} placeholder="https://tiktok.com/@..." style={{ ...STYLES.input, backgroundColor: COLORS.bg, fontSize: '0.9rem', padding: '10px', marginTop: '3px' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.75rem', color: COLORS.textMuted }}>SoundCloud</label>
+                <input type="text" value={djSocials.soundcloud} onChange={(e) => handleZmianaLinku('soundcloud', e.target.value)} placeholder="https://soundcloud.com/..." style={{ ...STYLES.input, backgroundColor: COLORS.bg, fontSize: '0.9rem', padding: '10px', marginTop: '3px' }} />
+              </div>
+            </div>
+          </div>
           <div style={{ textAlign: 'center', marginTop: '40px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.05)', fontSize: '0.75rem', color: COLORS.textDim }}>
             Dane BPM / Key: <a href="https://getsongbpm.com" target="_blank" rel="noreferrer" style={{ color: COLORS.textDisabled, textDecoration: 'underline' }}>GetSongBPM</a>
           </div>
